@@ -1,7 +1,9 @@
 # merge-ingb.awk
-# merges INGB csv file:
+#
+# merges a INGB csv file:
 # 1        2                     3          4               5      6        7              8              9              10                 11
 # "Datum";"Naam / Omschrijving";"Rekening";"Tegenrekening";"Code";"Af Bij";"Bedrag (EUR)";"Mutatiesoort";"Mededelingen";"Saldo na mutatie";"Tag"
+#
 # to NHPO spreadsheet:
 # Datum	Kas	Contributies	Concerten	Subsidies	Overige Inkomsten	Salarissen	Muziek	Zaalhuur	Betalingsverkeer	Secretariaat	Omschrijving
 
@@ -28,6 +30,7 @@ BEGIN {
   FS = ";"
   field_max = 0
   line = 0
+  required_fields = 11
 
   # init fields according to NHPO spreadsheet
   field_contributie = field_max++
@@ -44,9 +47,9 @@ BEGIN {
 
 {
   # be sure each record has correct fields
-  if (NF != 11)
+  if (NF != required_fields)
   {
-    printf(">>> record: %d heeft %d velden\n", NR, NF)
+    printf(">>> skip record %d: %d velden i.p.v. %d\n", NR, NF, required_fields)
   }
   else if (NR > 1)
   {
