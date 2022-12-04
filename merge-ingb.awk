@@ -1,10 +1,10 @@
 # merge-ingb.awk
 #
-# merges a INGB csv file:
+# merges a INGB csv file with fields:
 # 1        2                     3          4               5      6        7              8              9              10                 11
 # "Datum";"Naam / Omschrijving";"Rekening";"Tegenrekening";"Code";"Af Bij";"Bedrag (EUR)";"Mutatiesoort";"Mededelingen";"Saldo na mutatie";"Tag"
 #
-# to NHPO spreadsheet:
+# to NHPO spreadsheet with fields:
 # Datum	Kas	Contributies	Concerten	Subsidies	Overige Inkomsten	Salarissen	Muziek	Zaalhuur	Betalingsverkeer	Secretariaat	Omschrijving
 
 function analyse_field(match_text, field) {
@@ -32,7 +32,7 @@ BEGIN {
   line = 0
   required_fields = 11
 
-  # init fields according to NHPO spreadsheet
+  # init fields according to the NHPO spreadsheet
   field_contributie = field_max++
   field_concert = field_max++
   field_subsidie = field_max++
@@ -49,7 +49,7 @@ BEGIN {
   # be sure each record has correct fields
   if (NF != required_fields)
   {
-    printf(">>> skip record %d: %d velden i.p.v. %d\n", NR, NF, required_fields)
+    printf(">>> SKIP record %d: %d velden i.p.v. %d\n", NR, NF, required_fields)
   }
   else if (NR > 1)
   {
@@ -82,7 +82,7 @@ BEGIN {
         !analyse_field("betv", field_betv) &&
         !analyse_field("secretariaat", field_secretariaat))
     {
-      printf("\n>>> record: %d van '%s' bedrag %s met '%s'\n", NR, naam, bedrag, mededelingen)
+      printf(">>> ERROR no match record: %d van '%s' bedrag %s met '%s'\n", NR, naam, bedrag, mededelingen)
       exit
     }
     
