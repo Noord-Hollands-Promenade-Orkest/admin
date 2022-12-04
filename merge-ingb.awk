@@ -39,6 +39,8 @@ BEGIN {
   required_fields = 11
 
   # init fields according to the NHPO spreadsheet
+  field_datum = field_max++
+  field_saldo = field_max++
   field_contributie = field_max++
   field_concert = field_max++
   field_subsidie = field_max++
@@ -49,6 +51,7 @@ BEGIN {
   field_zaalhuur = field_max++
   field_betv = field_max++
   field_secretariaat = field_max++
+  field_omschrijving = field_max++
 } 
 
 {
@@ -62,7 +65,7 @@ BEGIN {
     # skip all " characters
     gsub("\"", "")
 
-    # fields that are directly present in the csv input
+    # fields that are directly present in the INGB csv input
     datum = $1 
     naam = $2 
     rekening = $3 
@@ -75,6 +78,10 @@ BEGIN {
     {
       output_fields[i] = ""
     }
+    
+    output_fields[field_datum] = datum;
+    output_fields[field_saldo] = saldo;
+    output_fields[field_omschrijving] = mededelingen;
     
     # analyse the fields
     if (!analyse_field("[cC]ontributie|CONTBR", field_contributie) &&
@@ -93,16 +100,14 @@ BEGIN {
       exit
     }
     
-    # output to a csv file that can be imported into the NHPO spreadsheet
+    # output to a csv file that can be used as the NHPO spreadsheet
     # the order has to be reversed, so output to array
-    line = sprintf("%s;%s;", datum, saldo)
+    line = ""
 
     for (i = 0; i < field_max; i++)
     {
       line = sprintf("%s%s;", line, output_fields[i])
     }
-    
-    line = sprintf("%s%s", line, mededelingen)
     
     output[line_no++] = line
   }
@@ -111,7 +116,7 @@ BEGIN {
 END {
   if (!error)
   {
-    printf("Datum	Kas	Contributies	Concerten	Subsidies	Overige Inkomsten	Salarissen	Muziek	Zaalhuur	Betalingsverkeer	Secretariaat	Omschrijving");
+    printf("Datum;Kas;Contributies;Concerten;Subsidies;Overige Inkomsten;Salarissen;Muziek;Zaalhuur;Betalingsverkeer;Secretariaat;Omschrijving");
   
     for (i = line_no - 1; i >= 0; i--) 
     {
