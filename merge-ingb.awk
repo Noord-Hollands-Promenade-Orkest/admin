@@ -10,9 +10,14 @@
 function analyse_field(match_text, field) {
   if (mededelingen ~ match_text ||
     (field == field_contributie && bedrag == "200,00") ||
+    (field == field_concert && 
+       (mededelingen ~ "Openbaar optreden" || mededelingen ~ "NhPO" || mededelingen ~ "Concert" ||
+        mededelingen ~ "kaart")) ||
     (field == field_subsidie && naam ~ "GEMEENTE") ||
     (field == field_salaris && naam ~ "P.H.C. Stam") ||
-    (field == field_uitgaven && naam ~ "Evidos") ||
+    (field == field_uitgaven &&
+       (naam ~ "Evidos" || naam ~ "Your Hosting" || naam ~ "Groenmarktkerk" || naam ~ "Kennemer" ||
+        mededelingen ~ "Factuur" || mededelingen ~ "declaratie" || mededelingen ~ "Teruggave")) ||
     (field == field_zaalhuur && naam ~ "Stichting DOCK") ||
     (field == field_secretariaat && naam ~ "J. van Meurs") ||
     (field == field_betv && naam ~ "Kosten Zakelijk"))
@@ -28,8 +33,9 @@ function analyse_field(match_text, field) {
   
 BEGIN {
   FS = ";"
+  error = 0
   field_max = 0
-  line = 0
+  line_no = 0
   required_fields = 11
 
   # init fields according to the NHPO spreadsheet
@@ -82,28 +88,34 @@ BEGIN {
         !analyse_field("betv", field_betv) &&
         !analyse_field("secretariaat", field_secretariaat))
     {
-      printf(">>> ERROR no match record: %d van '%s' bedrag %s met '%s'\n", NR, naam, bedrag, mededelingen)
+      printf(">>> ERROR no match record: %d van '%s' bedrag: %s mededelingen: '%s'\n", NR, naam, bedrag, mededelingen)
+      error = 1
       exit
     }
     
     # output to a csv file that can be imported into the NHPO spreadsheet
     # the order has to be reversed, so output to array
-    text = sprintf("%s;%s;", datum, saldo)
+    line = sprintf("%s;%s;", datum, saldo)
 
     for (i = 0; i < field_max; i++)
     {
-      text = sprintf("%s%s;", text, output_fields[i])
+      line = sprintf("%s%s;", line, output_fields[i])
     }
     
-    text = sprintf("%s%s", text, mededelingen)
+    line = sprintf("%s%s", line, mededelingen)
     
-    output[line++] = text
+    output[line_no++] = line
   }
 }
 
 END {
-  for (i = line - 1; i >= 0; i--) 
+  if (!error)
   {
-    printf("%s\n", output[i]);
+    printf("Datum	Kas	Contributies	Concerten	Subsidies	Overige Inkomsten	Salarissen	Muziek	Zaalhuur	Betalingsverkeer	Secretariaat	Omschrijving");
+  
+    for (i = line_no - 1; i >= 0; i--) 
+    {
+      printf("%s\n", output[i]);
+    }
   }
 }

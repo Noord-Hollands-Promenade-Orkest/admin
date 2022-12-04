@@ -1,10 +1,12 @@
 #!/bin/bash
 
-file=overzicht-2022.csv
+input=overzicht-2022.csv
+output=overzicht-2022.ods
 
 if [[ $# -eq 1 ]] 
   then
-    file=$1
+    input=$1
+    output=$1.ods
 fi
 
-awk -f admin/merge-ingb.awk $file
+awk -f admin/merge-ingb.awk $input > $output
