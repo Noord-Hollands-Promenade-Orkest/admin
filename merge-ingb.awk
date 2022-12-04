@@ -4,8 +4,8 @@
 # 1        2                     3          4               5      6        7              8              9              10                 11
 # "Datum";"Naam / Omschrijving";"Rekening";"Tegenrekening";"Code";"Af Bij";"Bedrag (EUR)";"Mutatiesoort";"Mededelingen";"Saldo na mutatie";"Tag"
 #
-# to NHPO spreadsheet with fields:
-# Datum	Kas	Contributies	Concerten	Subsidies	Overige Inkomsten	Salarissen	Muziek	Zaalhuur	Betalingsverkeer	Secretariaat	Omschrijving
+# to NHPO csv file with fields:
+# Datum;Naam;Contributies;Concerten;Subsidies;Overige Inkomsten;Uitgaven;Salarissen;Muziek;Zaalhuur;Betalingsverkeer;Secretariaat;Omschrijving
 
 function analyse_field(match_text, field) {
   if (mededelingen ~ match_text ||
@@ -38,9 +38,10 @@ BEGIN {
   line_no = 0
   required_fields = 11
 
-  # init fields according to the NHPO spreadsheet
+  # init and setup fields according to the NHPO spreadsheet
   field_datum = field_max++
   field_saldo = field_max++
+  field_naam =  field_max++
   field_contributie = field_max++
   field_concert = field_max++
   field_subsidie = field_max++
@@ -81,6 +82,7 @@ BEGIN {
     
     output_fields[field_datum] = datum;
     output_fields[field_saldo] = saldo;
+    output_fields[field_naam] = naam;
     output_fields[field_omschrijving] = mededelingen;
     
     # analyse the fields
@@ -116,7 +118,7 @@ BEGIN {
 END {
   if (!error)
   {
-    printf("Datum;Kas;Contributies;Concerten;Subsidies;Overige Inkomsten;Salarissen;Muziek;Zaalhuur;Betalingsverkeer;Secretariaat;Omschrijving");
+    printf("Datum;Saldo;Naam;Contributies;Concerten;Subsidies;Overige Inkomsten;Uitgaven;Salarissen;Muziek;Zaalhuur;Betalingsverkeer;Secretariaat;Omschrijving\n");
   
     for (i = line_no - 1; i >= 0; i--) 
     {
