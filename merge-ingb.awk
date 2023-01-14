@@ -59,7 +59,8 @@ BEGIN {
   # be sure each record has correct fields
   if (NF != required_fields)
   {
-    printf(">>> SKIP record %d: %d velden i.p.v. %d\n", NR, NF, required_fields)
+    printf(">>> SKIP record %d: %d velden i.p.v. %d\n", 
+      NR, NF, required_fields) > "/dev/stderr"
   }
   else if (NR > 1)
   {
@@ -90,6 +91,7 @@ BEGIN {
         !analyse_field("concert", field_concert) &&
         !analyse_field("subsidie", field_subsidie) &&
         !analyse_field("overige", field_overige) &&
+        !analyse_field("eclaratie", field_uitgaven) &&
         !analyse_field("KAMER VAN|Federatie van", field_uitgaven) &&
         !analyse_field("salaris", field_salaris) &&
         !analyse_field("muziek", field_muziek) &&
@@ -97,7 +99,8 @@ BEGIN {
         !analyse_field("betv", field_betv) &&
         !analyse_field("secretariaat", field_secretariaat))
     {
-      printf(">>> ERROR no match record: %d van '%s' bedrag: %s mededelingen: '%s'\n", NR, naam, bedrag, mededelingen)
+      printf(">>> ERROR no match record: %d van '%s' bedrag: %s mededelingen: '%s'\n", 
+        NR, naam, bedrag, mededelingen) > "/dev/stderr"
       error = 1
       exit
     }
