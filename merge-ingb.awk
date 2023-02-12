@@ -5,7 +5,7 @@
 # "Datum";"Naam / Omschrijving";"Rekening";"Tegenrekening";"Code";"Af Bij";"Bedrag (EUR)";"Mutatiesoort";"Mededelingen";"Saldo na mutatie";"Tag"
 #
 # to NHPO csv file with fields:
-# Datum;Naam;Contributies;Concerten;Subsidies;Overige Inkomsten;Uitgaven;Salarissen;Muziek;Zaalhuur;Betalingsverkeer;Secretariaat;Omschrijving
+# Datum;Saldo;Naam;Contributies;Concerten;Subsidies;Overige Inkomsten;Uitgaven;Salarissen;Muziek;Zaalhuur;Betalingsverkeer;Secretariaat;Omschrijving
 
 function analyse_field(match_text, field) {
   if (mededelingen ~ match_text ||
@@ -14,10 +14,11 @@ function analyse_field(match_text, field) {
        (mededelingen ~ "Openbaar optreden" || mededelingen ~ "NhPO" || mededelingen ~ "Concert" ||
         mededelingen ~ "kaart")) ||
     (field == field_subsidie && naam ~ "GEMEENTE") ||
+    (field == field_muziek && naam ~ "P.H.C. Stam" && (mededelingen ~ "eclaratie" || mededelingen ~ "Scot")) ||
     (field == field_salaris && naam ~ "P.H.C. Stam") ||
     (field == field_uitgaven &&
        (naam ~ "Evidos" || naam ~ "Your Hosting" || naam ~ "Groenmarktkerk" || naam ~ "Kennemer" ||
-        mededelingen ~ "Factuur" || mededelingen ~ "declaratie" || mededelingen ~ "Teruggave")) ||
+       (mededelingen ~ "Factuur" && naam != "P.H.C. Stam") || mededelingen ~ "declaratie" || mededelingen ~ "Teruggave")) ||
     (field == field_zaalhuur && naam ~ "Stichting DOCK") ||
     (field == field_secretariaat && naam ~ "J. van Meurs") ||
     (field == field_betv && naam ~ "Kosten Zakelijk"))
@@ -88,15 +89,15 @@ BEGIN {
 
     # analyse the fields
     if (!analyse_field("[cC]ontributie|CONTBR", field_contributie) &&
+        !analyse_field("betv", field_betv) &&
+        !analyse_field("muziek", field_muziek) &&
         !analyse_field("concert", field_concert) &&
         !analyse_field("subsidie", field_subsidie) &&
         !analyse_field("overige", field_overige) &&
         !analyse_field("eclaratie", field_uitgaven) &&
         !analyse_field("KAMER VAN|Federatie van", field_uitgaven) &&
         !analyse_field("salaris", field_salaris) &&
-        !analyse_field("muziek", field_muziek) &&
         !analyse_field("zaalhuur", field_zaalhuur) &&
-        !analyse_field("betv", field_betv) &&
         !analyse_field("secretariaat", field_secretariaat))
     {
       printf(">>> ERROR no match record: %d van '%s' bedrag: %s mededelingen: '%s'\n",
