@@ -10,7 +10,7 @@
 function analyse_field(match_text, field) {
   if (mededelingen ~ match_text ||
     (field == field_contributie && bedrag == "200,00") ||
-    (field == field_concert && 
+    (field == field_concert &&
        (mededelingen ~ "Openbaar optreden" || mededelingen ~ "NhPO" || mededelingen ~ "Concert" ||
         mededelingen ~ "kaart")) ||
     (field == field_subsidie && naam ~ "GEMEENTE") ||
@@ -30,7 +30,7 @@ function analyse_field(match_text, field) {
     return 0
   }
 }
-  
+
 BEGIN {
   FS = ";"
   error = 0
@@ -53,13 +53,13 @@ BEGIN {
   field_betv = field_max++
   field_secretariaat = field_max++
   field_omschrijving = field_max++
-} 
+}
 
 {
   # be sure each record has correct fields
   if (NF != required_fields)
   {
-    printf(">>> SKIP record %d: %d velden i.p.v. %d\n", 
+    printf(">>> SKIP record %d: %d velden i.p.v. %d\n",
       NR, NF, required_fields) > "/dev/stderr"
   }
   else if (NR > 1)
@@ -68,24 +68,24 @@ BEGIN {
     gsub("\"", "")
 
     # fields that are directly present in the INGB csv input
-    datum = $1 
-    naam = $2 
-    rekening = $3 
+    datum = $1
+    naam = $2
+    rekening = $3
     af_bij = $6
     bedrag = $7
     mededelingen = $9
     saldo = $10
-    
+
     for (i = 0; i < field_max; i++)
     {
       output_fields[i] = ""
     }
-    
+
     output_fields[field_datum] = datum;
     output_fields[field_saldo] = saldo;
     output_fields[field_naam] = naam;
     output_fields[field_omschrijving] = mededelingen;
-    
+
     # analyse the fields
     if (!analyse_field("[cC]ontributie|CONTBR", field_contributie) &&
         !analyse_field("concert", field_concert) &&
@@ -99,12 +99,12 @@ BEGIN {
         !analyse_field("betv", field_betv) &&
         !analyse_field("secretariaat", field_secretariaat))
     {
-      printf(">>> ERROR no match record: %d van '%s' bedrag: %s mededelingen: '%s'\n", 
+      printf(">>> ERROR no match record: %d van '%s' bedrag: %s mededelingen: '%s'\n",
         NR, naam, bedrag, mededelingen) > "/dev/stderr"
       error = 1
       exit
     }
-    
+
     # output to a csv file that can be used as the NHPO spreadsheet
     # the order has to be reversed, so output to array
     line = ""
@@ -113,7 +113,7 @@ BEGIN {
     {
       line = sprintf("%s%s;", line, output_fields[i])
     }
-    
+
     output[line_no++] = line
   }
 }
@@ -122,8 +122,8 @@ END {
   if (!error)
   {
     printf("Datum;Saldo;Naam;Contributies;Concerten;Subsidies;Overige Inkomsten;Uitgaven;Salarissen;Muziek;Zaalhuur;Betalingsverkeer;Secretariaat;Omschrijving\n");
-  
-    for (i = line_no - 1; i >= 0; i--) 
+
+    for (i = line_no - 1; i >= 0; i--)
     {
       printf("%s\n", output[i]);
     }
