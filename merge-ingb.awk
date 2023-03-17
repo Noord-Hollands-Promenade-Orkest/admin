@@ -10,18 +10,20 @@
 function analyse_field(match_text, field) {
   if (mededelingen ~ match_text ||
     (field == field_contributie && bedrag == "200,00") ||
-    (field == field_concert &&
+    (field == field_concert && af_bij = "Bij" &&
        (mededelingen ~ "Openbaar optreden" || mededelingen ~ "NhPO" || mededelingen ~ "Concert" ||
         mededelingen ~ "kaart")) ||
     (field == field_subsidie && naam ~ "GEMEENTE") ||
     (field == field_muziek && naam ~ "P.H.C. Stam" && (mededelingen ~ "eclaratie" || mededelingen ~ "Scot")) ||
     (field == field_salaris && naam ~ "P.H.C. Stam") ||
     (field == field_uitgaven && af_bij == "Af" &&
-       (naam ~ "Evidos" || naam ~ "Your Hosting" || naam ~ "Groenmarktkerk" || naam ~ "Kennemer" ||
+       (naam ~ "Evidos" || naam ~ "Your Hosting" || naam ~ "Groenmarktkerk" || naam ~ "Kennemer" || naam ~ "Kemp" ||
        (mededelingen ~ "Factuur" && naam != "P.H.C. Stam") || mededelingen ~ "declaratie" || mededelingen ~ "Teruggave")) ||
     (field == field_zaalhuur && naam ~ "Stichting DOCK") ||
-    (field == field_secretariaat && naam ~ "J. van Meurs") ||
-    (field == field_betv && naam ~ "Kosten Zakelijk"))
+    (field == field_secretariaat && naam ~ "J. van Meurs" && af_bij == "Af") ||
+    (field == field_betv && naam ~ "Kosten Zakelijk") ||
+    (field == field_overige && af_bij ="Bij") ||
+    (field == field_uitgave && af_bij ="Af"))
   {
     output_fields[field] = bedrag
     return 1
@@ -94,11 +96,11 @@ BEGIN {
         !analyse_field("eclaratie", field_uitgaven) &&
         !analyse_field("concert", field_concert) &&
         !analyse_field("subsidie", field_subsidie) &&
-        !analyse_field("overige", field_overige) &&
         !analyse_field("KAMER VAN|Federatie van", field_uitgaven) &&
         !analyse_field("salaris", field_salaris) &&
         !analyse_field("zaalhuur", field_zaalhuur) &&
-        !analyse_field("secretariaat", field_secretariaat))
+        !analyse_field("secretariaat", field_secretariaat) &&
+        !analyse_field("overige", field_overige))
     {
       printf(">>> ERROR no match record: %d van '%s' bedrag: %s mededelingen: '%s'\n",
         NR, naam, bedrag, mededelingen) > "/dev/stderr"
