@@ -16,7 +16,7 @@ function analyse_field(match_text, field) {
     (field == field_subsidie && naam ~ "GEMEENTE") ||
     (field == field_muziek && naam ~ "P.H.C. Stam" && (mededelingen ~ "eclaratie" || mededelingen ~ "Scot")) ||
     (field == field_salaris && naam ~ "P.H.C. Stam") ||
-    (field == field_uitgaven &&
+    (field == field_uitgaven && af_bij == "Af" &&
        (naam ~ "Evidos" || naam ~ "Your Hosting" || naam ~ "Groenmarktkerk" || naam ~ "Kennemer" ||
        (mededelingen ~ "Factuur" && naam != "P.H.C. Stam") || mededelingen ~ "declaratie" || mededelingen ~ "Teruggave")) ||
     (field == field_zaalhuur && naam ~ "Stichting DOCK") ||
@@ -91,10 +91,10 @@ BEGIN {
     if (!analyse_field("[cC]ontributie|CONTBR", field_contributie) &&
         !analyse_field("betv", field_betv) &&
         !analyse_field("muziek", field_muziek) &&
+        !analyse_field("eclaratie", field_uitgaven) &&
         !analyse_field("concert", field_concert) &&
         !analyse_field("subsidie", field_subsidie) &&
         !analyse_field("overige", field_overige) &&
-        !analyse_field("eclaratie", field_uitgaven) &&
         !analyse_field("KAMER VAN|Federatie van", field_uitgaven) &&
         !analyse_field("salaris", field_salaris) &&
         !analyse_field("zaalhuur", field_zaalhuur) &&

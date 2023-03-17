@@ -14,6 +14,8 @@ then
   exit 1
 fi
 
+scriptdir="$(dirname -- "$BASH_SOURCE";)"
+
 output=$1-nhpo.csv
 
-awk -f admin/merge-ingb.awk $input > $output
+awk -f ${scriptdir}/merge-ingb.awk $input > $output
