@@ -1,24 +1,36 @@
 # merge-ingb.awk
-#
-# merges a INGB csv file with fields:
-# 1        2                     3          4               5      6        7              8              9              10                 11
-# "Datum";"Naam / Omschrijving";"Rekening";"Tegenrekening";"Code";"Af Bij";"Bedrag (EUR)";"Mutatiesoort";"Mededelingen";"Saldo na mutatie";"Tag"
-#
-# to NHPO csv file with fields:
-# Datum;Saldo;Naam;Contributies;Concerten;Subsidies;Overige Inkomsten;Uitgaven;Salarissen;Muziek;Zaalhuur;Betalingsverkeer;Secretariaat;Omschrijving
 
-function analyse_field(match_text, field) {
+# merges a INGB csv file with semicolon as separator, with fields:
+#  1      2                    3         4              5      6
+# "Date";"Name / Description";"Account";"Counterparty";"Code";"Debit/credit";
+#  7              8                  9               10                 11
+# "Amount (EUR)";"Transaction type";"Notifications";"Resulting balance";"Tag"
+
+# to NHPO csv file with fields:
+# Datum;Saldo;Naam;Contributies;Concerten;Subsidies;Overige Inkomsten;Uitgaven;
+# Salarissen;Muziek;Zaalhuur;Betalingsverkeer;Secretariaat;Omschrijving
+
+function analyse_field(match_text, field)
+{
   if (mededelingen ~ match_text ||
     (field == field_contributie && bedrag == "200,00") ||
     (field == field_concert && af_bij = "Bij" &&
-       (mededelingen ~ "Openbaar optreden" || mededelingen ~ "NhPO" || mededelingen ~ "Concert" ||
+       (mededelingen ~ "Openbaar optreden" ||
+        mededelingen ~ "NhPO" ||
+        mededelingen ~ "Concert" ||
         mededelingen ~ "kaart")) ||
     (field == field_subsidie && naam ~ "GEMEENTE") ||
-    (field == field_muziek && naam ~ "P.H.C. Stam" && (mededelingen ~ "eclaratie" || mededelingen ~ "Scot")) ||
+    (field == field_muziek && naam ~ "P.H.C. Stam" &&
+      (mededelingen ~ "eclaratie" || mededelingen ~ "Scot")) ||
     (field == field_salaris && naam ~ "P.H.C. Stam") ||
     (field == field_uitgaven && af_bij == "Af" &&
-       (naam ~ "Evidos" || naam ~ "Your Hosting" || naam ~ "Groenmarktkerk" || naam ~ "Kennemer" || naam ~ "Kemp" ||
-       (mededelingen ~ "Factuur" && naam != "P.H.C. Stam") || mededelingen ~ "declaratie" || mededelingen ~ "Teruggave")) ||
+       (naam ~ "Evidos" ||
+        naam ~ "Your Hosting" ||
+        naam ~ "Groenmarktkerk" ||
+        naam ~ "Kennemer" ||
+        naam ~ "Kemp" ||
+       (mededelingen ~ "Factuur" && naam != "P.H.C. Stam") ||
+        mededelingen ~ "declaratie" || mededelingen ~ "Teruggave")) ||
     (field == field_zaalhuur && naam ~ "Stichting DOCK") ||
     (field == field_secretariaat && naam ~ "J. van Meurs" && af_bij == "Af") ||
     (field == field_betv && naam ~ "Kosten Zakelijk") ||
