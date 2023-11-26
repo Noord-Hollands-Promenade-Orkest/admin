@@ -6,38 +6,44 @@
 #  7              8                  9               10                 11
 # "Amount (EUR)";"Transaction type";"Notifications";"Resulting balance";"Tag"
 
-# to NHPO csv file with fields:
-# Datum;Saldo;Naam;Contributies;Concerten;Subsidies;Overige Inkomsten;Uitgaven;
-# Salarissen;Muziek;Zaalhuur;Betalingsverkeer;Secretariaat;Omschrijving
+# to NHPO csv file with fields as returned by add_header
+
+function add_header()
+{
+  printf(\
+"Datum;Saldo;Naam;Contributies;Concerten;Subsidies;Overige Inkomsten;\
+Uitgaven;Salarissen;Muziek;Zaalhuur;Betalingsverkeer;Secretariaat;\
+Omschrijving\n");
+}
 
 function analyse_field(match_text, field)
 {
-  if (mededelingen ~ match_text ||
-    (field == field_contributie && bedrag == "200,00") ||
-    (field == field_concert && af_bij = "Bij" &&
-       (mededelingen ~ "Openbaar optreden" ||
-        mededelingen ~ "NhPO" ||
-        mededelingen ~ "Concert" ||
-        mededelingen ~ "kaart")) ||
-    (field == field_subsidie && naam ~ "GEMEENTE") ||
-    (field == field_muziek && naam ~ "P.H.C. Stam" &&
-      (mededelingen ~ "eclaratie" || mededelingen ~ "Scot")) ||
-    (field == field_salaris && naam ~ "P.H.C. Stam") ||
-    (field == field_uitgaven && af_bij == "Af" &&
-       (naam ~ "Evidos" ||
-        naam ~ "Your Hosting" ||
-        naam ~ "Groenmarktkerk" ||
-        naam ~ "Kennemer" ||
-        naam ~ "Kemp" ||
-       (mededelingen ~ "Factuur" && naam != "P.H.C. Stam") ||
-        mededelingen ~ "declaratie" || mededelingen ~ "Teruggave")) ||
-    (field == field_zaalhuur && naam ~ "Stichting DOCK") ||
-    (field == field_secretariaat && naam ~ "J. van Meurs" && af_bij == "Af") ||
-    (field == field_betv && naam ~ "Kosten Zakelijk") ||
-    (field == field_overige && af_bij ="Bij") ||
-    (field == field_uitgave && af_bij ="Af"))
+  if (notifications ~ match_text ||
+    (field == field_contributie && amount == "200,00") ||
+    (field == field_concert && debit_credit == "Credit" &&
+       (notifications ~ "Openbaar optreden" ||
+        notifications ~ "NhPO" ||
+        notifications ~ "Concert" ||
+        notifications ~ "kaart")) ||
+    (field == field_subsidie && name ~ "GEMEENTE") ||
+    (field == field_muziek && name ~ "P.H.C. Stam" &&
+      (notifications ~ "eclaratie" || notifications ~ "Scot")) ||
+    (field == field_salaris && name ~ "P.H.C. Stam") ||
+    (field == field_uitgaven && debit_credit == "Debit" &&
+       (name ~ "Evidos" ||
+        name ~ "Your Hosting" ||
+        name ~ "Groenmarktkerk" ||
+        name ~ "Kennemer" ||
+        name ~ "Kemp" ||
+       (notifications ~ "Factuur" && name != "P.H.C. Stam") ||
+        notifications ~ "declaratie" || notifications ~ "Teruggave")) ||
+    (field == field_zaalhuur && name ~ "Stichting DOCK") ||
+    (field == field_secretariaat && name ~ "J. van Meurs" && debit_credit == "Debit") ||
+    (field == field_betv && name ~ "Kosten Zakelijk") ||
+    (field == field_overige_inkomsten && debit_credit == "Credit") ||
+    (field == field_uitgaven && debit_credit == "Debit"))
   {
-    output_fields[field] = bedrag
+    output_fields[field] = amount
     return 1
   }
   else
@@ -54,13 +60,14 @@ BEGIN {
   required_fields = 11
 
   # init and setup fields according to the NHPO spreadsheet
+  # (these are in Dutch)
   field_datum = field_max++
   field_saldo = field_max++
   field_naam =  field_max++
   field_contributie = field_max++
   field_concert = field_max++
   field_subsidie = field_max++
-  field_overige = field_max++
+  field_overige_inkomsten = field_max++
   field_uitgaven = field_max++
   field_salaris = field_max++
   field_muziek = field_max++
@@ -83,24 +90,23 @@ BEGIN {
     gsub("\"", "")
 
     # fields that are directly present in the INGB csv input
-    datum = $1
-    naam = $2
-    rekening = $3
-    af_bij = $6
-    bedrag = $7
-    mededelingen = $9
-    saldo = $10
+    date = $1
+    name = $2
+    debit_credit = $6
+    amount = $7
+    notifications = $9
+    resulting_balance = $10
 
     for (i = 0; i < field_max; i++)
     {
       output_fields[i] = ""
     }
 
-    output_fields[field_datum] = datum;
-    output_fields[field_saldo] = saldo;
-    output_fields[field_naam] = naam;
-    output_fields[field_omschrijving] = mededelingen;
-
+    output_fields[field_datum] = date;
+    output_fields[field_saldo] = resulting_balance;
+    output_fields[field_naam] = name;
+    output_fields[field_omschrijving] = notifications;
+    
     # analyse the fields
     if (!analyse_field("[cC]ontributie|CONTBR", field_contributie) &&
         !analyse_field("betv", field_betv) &&
@@ -112,10 +118,10 @@ BEGIN {
         !analyse_field("salaris", field_salaris) &&
         !analyse_field("zaalhuur", field_zaalhuur) &&
         !analyse_field("secretariaat", field_secretariaat) &&
-        !analyse_field("overige", field_overige))
+        !analyse_field("overige", field_overige_inkomsten))
     {
-      printf(">>> ERROR no match record: %d van '%s' bedrag: %s mededelingen: '%s'\n",
-        NR, naam, bedrag, mededelingen) > "/dev/stderr"
+      printf(">>> ERROR no match record: %d van '%s' amount: %s deb/cre: %s notifications: '%s'\n",
+                NR, name, amount, debit_credit, notifications) > "/dev/stderr"
       error = 1
       exit
     }
@@ -136,7 +142,7 @@ BEGIN {
 END {
   if (!error)
   {
-    printf("Datum;Saldo;Naam;Contributies;Concerten;Subsidies;Overige Inkomsten;Uitgaven;Salarissen;Muziek;Zaalhuur;Betalingsverkeer;Secretariaat;Omschrijving\n");
+    add_header();
 
     for (i = line_no - 1; i >= 0; i--)
     {
