@@ -10,8 +10,10 @@ create a csv overview from the ingb bank account that can
 be imported into a spreadsheet for the annual meeting presentation or
 municipal subsidy.
 
+After changing the merge files, run install to install them.
+
 ## example
 
 ```bash
-./admin/merge-ingb.sh NL89INGB0003788111_01-01-2022_31-12-2022.csv
+merge-ingb.sh NL89INGB0003788111_01-01-2022_31-12-2022.csv
 ```
