@@ -24,6 +24,7 @@ function analyse_field(match_text, field)
        (notifications ~ "Openbaar optreden" ||
         notifications ~ "NhPO" ||
         notifications ~ "Concert" ||
+        notifications ~ "Factuur" ||
         notifications ~ "kaart")) ||
     (field == field_subsidie && name ~ "GEMEENTE") ||
     (field == field_muziek && name ~ "P.H.C. Stam" &&
