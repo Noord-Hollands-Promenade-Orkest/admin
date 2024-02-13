@@ -18,7 +18,7 @@ Omschrijving\n");
 
 function analyse_field(match_text, field)
 {
-  if (notifications ~ match_text ||
+  if ((notifications ~ match_text && debit_credit == "Credit") ||
     (field == field_contributie && amount == "200,00") ||
     (field == field_concert && debit_credit == "Credit" &&
        (notifications ~ "Openbaar optreden" ||
@@ -30,6 +30,8 @@ function analyse_field(match_text, field)
     (field == field_muziek && name ~ "P.H.C. Stam" &&
       (notifications ~ "eclaratie" || notifications ~ "Scot")) ||
     (field == field_salaris && name ~ "P.H.C. Stam") ||
+    (field == field_secretariaat && name ~ "Mw HF van Garrel" && debit_credit == "Debit") ||
+    (field == field_zaalhuur && (name ~ "Stichting DOCK" || name ~ "Coop.* Buurts U.A.")) ||
     (field == field_uitgaven && debit_credit == "Debit" &&
        (name ~ "Evidos" ||
         name ~ "Your Hosting" ||
@@ -38,12 +40,12 @@ function analyse_field(match_text, field)
         name ~ "Kemp" ||
        (notifications ~ "Factuur" && name != "P.H.C. Stam") ||
         notifications ~ "declaratie" || notifications ~ "Teruggave")) ||
-    (field == field_zaalhuur && name ~ "Stichting DOCK") ||
-    (field == field_secretariaat && name ~ "J. van Meurs" && debit_credit == "Debit") ||
     (field == field_betv && name ~ "Kosten Zakelijk") ||
     (field == field_overige_inkomsten && debit_credit == "Credit") ||
     (field == field_uitgaven && debit_credit == "Debit"))
   {
+    # to debug
+    # printf("---------> %s %s %s found\n", name, match_text, field)
     output_fields[field] = amount
     return 1
   }
@@ -112,13 +114,13 @@ BEGIN {
     if (!analyse_field("[cC]ontributie|CONTBR", field_contributie) &&
         !analyse_field("betv", field_betv) &&
         !analyse_field("muziek", field_muziek) &&
-        !analyse_field("eclaratie", field_uitgaven) &&
         !analyse_field("concert", field_concert) &&
         !analyse_field("subsidie", field_subsidie) &&
-        !analyse_field("KAMER VAN|Federatie van", field_uitgaven) &&
         !analyse_field("salaris", field_salaris) &&
-        !analyse_field("zaalhuur", field_zaalhuur) &&
         !analyse_field("secretariaat", field_secretariaat) &&
+        !analyse_field("zaalhuur", field_zaalhuur) &&
+        !analyse_field("eclaratie", field_uitgaven) &&
+        !analyse_field("KAMER VAN|Federatie van", field_uitgaven) &&
         !analyse_field("overige", field_overige_inkomsten))
     {
       printf(">>> ERROR no match record: %d van '%s' amount: %s deb/cre: %s notifications: '%s'\n",
