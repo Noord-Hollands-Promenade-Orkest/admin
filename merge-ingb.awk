@@ -28,7 +28,7 @@ function analyse_field(match_text, field)
         notifications ~ "kaart")) ||
     (field == field_subsidie && name ~ "GEMEENTE") ||
     (field == field_muziek && name ~ "P.H.C. Stam" &&
-      (notifications ~ "eclaratie" || notifications ~ "Scot")) ||
+      (notifications ~ "Onkosten")) ||
     (field == field_salaris && name ~ "P.H.C. Stam") ||
     (field == field_secretariaat && name ~ "Mw HF van Garrel" && debit_credit == "Debit") ||
     (field == field_zaalhuur && (name ~ "Stichting DOCK" || name ~ "Coop.* Buurts U.A.")) ||
