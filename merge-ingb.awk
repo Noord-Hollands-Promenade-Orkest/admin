@@ -19,7 +19,7 @@ Omschrijving\n");
 function analyse_field(match_text, field)
 {
   if ((notifications ~ match_text && debit_credit == "Credit") ||
-    (field == field_contributie && amount == "200,00") ||
+    (field == field_contributie && amount == "275,00") ||
     (field == field_concert && debit_credit == "Credit" &&
        (notifications ~ "Openbaar optreden" ||
         notifications ~ "NhPO" ||
@@ -111,7 +111,7 @@ BEGIN {
     output_fields[field_omschrijving] = notifications;
     
     # analyse the fields
-    if (!analyse_field("[cC]ontributie|CONTBR", field_contributie) &&
+    if (!analyse_field("[cC]ontrib|CONTBR|CONTR", field_contributie) &&
         !analyse_field("betv", field_betv) &&
         !analyse_field("muziek", field_muziek) &&
         !analyse_field("concert", field_concert) &&
