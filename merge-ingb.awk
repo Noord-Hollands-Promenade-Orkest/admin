@@ -111,10 +111,10 @@ BEGIN {
     output_fields[field_omschrijving] = notifications;
     
     # analyse the fields
-    if (!analyse_field("[cC]ontrib|CONTBR|CONTR|speelj|bijbetaling", field_contributie) &&
+    if (!analyse_field("[cC]ontri?b|CONTBR|CONTR|speelj|bijbetaling", field_contributie) &&
         !analyse_field("betv", field_betv) &&
         !analyse_field("muziek", field_muziek) &&
-        !analyse_field("concert", field_concert) &&
+        !analyse_field("concert|optreden", field_concert) &&
         !analyse_field("subsidie", field_subsidie) &&
         !analyse_field("salaris", field_salaris) &&
         !analyse_field("secretariaat", field_secretariaat) &&
