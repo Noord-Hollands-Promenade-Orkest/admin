@@ -40,4 +40,4 @@ scriptdir="$(dirname -- "$BASH_SOURCE";)"
 
 output=$1-nhpo.csv
 
-awk -f ${scriptdir}/bank-transaction.awk $input > $output
+awk -f ${scriptdir}/bank-transaction-read.awk $input > $output
