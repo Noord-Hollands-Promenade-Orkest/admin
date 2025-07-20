@@ -1,5 +1,5 @@
 #!/bin/bash
-# installs the merge files
+# installs the bank-transaction files
 
-sudo cp -p merge-ingb.sh /usr/local/bin
-sudo cp -p merge-ingb.awk /usr/local/bin
+sudo cp -p bank-transaction.sh /usr/local/bin
+sudo cp -p bank-transaction.awk /usr/local/bin

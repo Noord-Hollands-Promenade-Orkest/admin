@@ -1,6 +1,6 @@
-# merge-ingb.awk
+# bank-transaction.awk
 
-# merges a INGB csv file with semicolon as separator, with fields:
+# merges a bank transaction csv file with semicolon as separator, with fields:
 #  1      2                    3         4              5      6
 # "Date";"Name / Description";"Account";"Counterparty";"Code";"Debit/credit";
 #  7              8                  9               10                 11
