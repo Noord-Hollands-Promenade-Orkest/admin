@@ -6,7 +6,7 @@
 #  7              8                  9               10                 11
 # "Amount (EUR)";"Transaction type";"Notifications";"Resulting balance";"Tag"
 
-# to NHPO csv file with fields as returned by add_header
+# to a excel csv file with fields as returned by add_header
 
 function add_header()
 {
@@ -47,6 +47,11 @@ function analyse_field(match_text, field)
     # to debug
     # printf("---------> %s %s %s found\n", name, match_text, field)
     output_fields[field] = amount
+
+    if (field == field_contributie && (contrib || mailing))
+    {
+       contributions[name] += amount
+    }
     return 1
   }
   else
@@ -60,9 +65,11 @@ BEGIN {
   error = 0
   field_max = 0
   line_no = 0
+  contrib = ENVIRON["CREATE_CONTRIB"] > 0
+  mailing = ENVIRON["CREATE_MAILING"] > 0
   required_fields = 11
 
-  # init and setup fields according to the NHPO spreadsheet
+  # init and setup fields according to the excel spreadsheet
   # (these are in Dutch)
   field_datum = field_max++
   field_saldo = field_max++
@@ -92,7 +99,7 @@ BEGIN {
     # skip all " characters
     gsub("\"", "")
 
-    # fields that are directly present in the INGB csv input
+    # fields that are directly present in the csv input
     date = $1
     name = $2
     debit_credit = $6
@@ -109,7 +116,7 @@ BEGIN {
     output_fields[field_saldo] = resulting_balance;
     output_fields[field_naam] = name;
     output_fields[field_omschrijving] = notifications;
-    
+
     # analyse the fields
     if (!analyse_field("[cC]ontri?b|CONTBR|CONTR|speelj|bijbetaling", field_contributie) &&
         !analyse_field("betv", field_betv) &&
@@ -124,12 +131,12 @@ BEGIN {
         !analyse_field("overige", field_overige_inkomsten))
     {
       printf(">>> ERROR no match record: %d van '%s' amount: %s deb/cre: %s notifications: '%s'\n",
-                NR, name, amount, debit_credit, notifications) > "/dev/stderr"
+        NR, name, amount, debit_credit, notifications) > "/dev/stderr"
       error = 1
       exit
     }
 
-    # output to a csv file that can be used as the NHPO spreadsheet
+    # output to a csv file that can be used as the excel spreadsheet
     # the order has to be reversed, so output to array
     line = ""
 
@@ -150,6 +157,14 @@ END {
     for (i = line_no - 1; i >= 0; i--)
     {
       printf("%s\n", output[i]);
+
+      if (contrib)
+      {
+        for (key in contributions)
+        {
+          printf("%s: %s\n", key, contributions[key]) > ENVIRON["FILE_CONTRIB"]
+        }
+      }
     }
   }
 }
