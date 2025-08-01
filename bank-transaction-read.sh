@@ -2,19 +2,18 @@
 
 usage()
 {
-  echo "Usage: bank-transaction-read.sh [-ch] [-m info] csv-file"
-  echo "-c       generates contributions overview"
-  echo "-h       displays usage information and exits"
-  echo "-m       generates mail addresses using specified info file"
+  echo "Usage: bank-transaction-read.sh [-ch] [-m info-file] csv-file"
+  echo "-c     generates contributions overview"
+  echo "-h     displays usage information and exits"
+  echo "-m     generates mail addresses using specified info-file"
   echo ""
-  echo "reads a csv bank transaction file and generates an excel csv file"
+  echo "reads a csv bank transaction file and outputs an excel csv file"
 }
 
-while getopts ":mch" opt; do
+while getopts ":m:ch" opt; do
   case $opt in
     c)
       export CREATE_CONTRIB=1
-      shift
     ;;
 
     h)
@@ -24,15 +23,13 @@ while getopts ":mch" opt; do
 
     m)
       export CREATE_MAILING=1
-      export FILE_INFO=${OPTARG}
+      export FILE_INFO="${OPTARG}"
 
       if [[ ! -f $FILE_INFO ]]
       then
-        echo "file $FILE_INFO does not exist"
+        echo "info file $FILE_INFO does not exist"
         exit 1
       fi
-
-      shift
     ;;
 
     :)
@@ -40,12 +37,14 @@ while getopts ":mch" opt; do
       exit 1
     ;;
 
-    \?)
-      echo "illegal option -$OPTARG"
+    ?)
+      echo -e "option -$OPTARG not supported"
       exit 1
     ;;
   esac
 done
+
+shift "$(($OPTIND -1))"
 
 if [[ $# -ne 1 ]]
 then
@@ -57,7 +56,7 @@ input=$1
 
 if [[ ! -f $1 ]]
 then
-  echo "file $1 does not exist"
+  echo "input file $1 does not exist"
   exit 1
 fi
 

@@ -1,12 +1,19 @@
-# bank-transaction.awk
+# bank-transaction-read.awk
 
-# merges a bank transaction csv file with semicolon as separator, with fields:
+# 1) reads a bank transaction csv file with semicolon as separator, with fields:
 #  1      2                    3         4              5      6
 # "Date";"Name / Description";"Account";"Counterparty";"Code";"Debit/credit";
 #  7              8                  9               10                 11
 # "Amount (EUR)";"Transaction type";"Notifications";"Resulting balance";"Tag"
 
-# to a excel csv file with fields as returned by add_header
+# 2) and outputs an excel csv file with fields as returned by add_header
+
+# 3) optionally generates contributions csv file with fields:
+# Bank account name;Contributions
+
+# 4) optionally reads a member list csv file, with fields:
+# Name;Bank account name;email address
+# and generates an email file
 
 function add_header()
 {
@@ -19,7 +26,7 @@ Omschrijving\n");
 function analyse_field(match_text, field)
 {
   if ((notifications ~ match_text && debit_credit == "Credit") ||
-    (field == field_contributie && amount == "275,00") ||
+    (field == field_contributie && amount == annual_contrib) ||
     (field == field_concert && debit_credit == "Credit" &&
        (notifications ~ "Openbaar optreden" ||
         notifications ~ "NhPO" ||
@@ -50,7 +57,22 @@ function analyse_field(match_text, field)
 
     if (field == field_contributie && (contrib || mailing))
     {
-       contributions[name] += amount
+      if (!mailing)
+      {
+        contributions[name] += amount
+      }
+      else
+      {
+        if (name in accounts_name)
+        {
+          contributions[name] += amount
+        }
+        else
+        {
+          printf(">>> WARNING account: '%s' from '%s' not present in accounts\n",
+            name, date) > "/dev/stderr"
+        }
+      }
     }
     return 1
   }
@@ -62,12 +84,33 @@ function analyse_field(match_text, field)
 
 BEGIN {
   FS = ";"
+  annual_contrib = 275.00
   error = 0
   field_max = 0
   line_no = 0
   contrib = ENVIRON["CREATE_CONTRIB"] > 0
   mailing = ENVIRON["CREATE_MAILING"] > 0
+  file_info = ENVIRON["FILE_INFO"]
   required_fields = 11
+
+  if (mailing)
+  {
+    while (( getline line < file_info) > 0)
+    {
+      n = split(line, t, ";")
+
+      if (n < 3)
+      {
+        printf(">>> ERROR in: '%s' line: '%s' too few columns\n",
+          file_info, line) > "/dev/stderr"
+        error = 1
+        exit
+      }
+
+      accounts_name[t[2]] = t[1]
+      accounts_email[t[2]] = t[3]
+    }
+  }
 
   # init and setup fields according to the excel spreadsheet
   # (these are in Dutch)
@@ -91,7 +134,7 @@ BEGIN {
   # be sure each record has correct fields
   if (NF != required_fields)
   {
-    printf(">>> SKIP record %d: %d velden i.p.v. %d\n",
+    printf(">>> SKIP record %d: %d fields instead of: %d\n",
       NR, NF, required_fields) > "/dev/stderr"
   }
   else if (NR > 1)
@@ -158,11 +201,34 @@ END {
     {
       printf("%s\n", output[i]);
 
-      if (contrib)
+    }
+
+    if (contrib)
+    {
+      for (key in contributions)
       {
-        for (key in contributions)
+        printf("%s;%s\n", key, contributions[key]) > ENVIRON["FILE_CONTRIB"]
+      }
+    }
+
+    if (mailing)
+    {
+      if (!contrib)
+      {
+        for (key in accounts_name)
         {
-          printf("%s: %s\n", key, contributions[key]) > ENVIRON["FILE_CONTRIB"]
+          printf("%s;%s\n", accounts_name[key], key) > ENVIRON["FILE_MAIL"]
+        }
+      }
+      else
+      {
+        for (key in accounts_name)
+        {
+          if (contributions[key] < annual_contrib)
+          {
+            printf("%s;%s;%s\n",
+              accounts_name[key], contributions[key],accounts_email[key]) > ENVIRON["FILE_MAIL"]
+          }
         }
       }
     }
