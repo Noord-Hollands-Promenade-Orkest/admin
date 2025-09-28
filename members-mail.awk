@@ -60,6 +60,6 @@ BEGIN {
     expand_template()
 
     # Currently only msmtp is supported
-    printf("cat %s | msmtp %s\n", output, email)
+    printf("cat %s | msmtp %s\n", output, email) > "mail-them.sh"
   }
 }

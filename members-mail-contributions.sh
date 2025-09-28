@@ -15,6 +15,9 @@ usage()
   echo "  NAME"
   echo "  SIGNATURE"
   echo "  YEAR"
+  echo ""
+  echo "It creates a file mail-them.sh that you can inspect and just execute"
+  echo "for the actual mailing"
 }
 
 while getopts ":t:h" opt; do
