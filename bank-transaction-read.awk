@@ -12,7 +12,7 @@
 # Bank account name;Contributions
 
 # 4) optionally reads a member list csv file, with fields:
-# Name;Bank account name;email address
+# Name;Bank account;email address
 # and generates an email file
 
 function add_header()
@@ -26,7 +26,7 @@ Omschrijving\n");
 function analyse_field(match_text, field)
 {
   if ((notifications ~ match_text && debit_credit == "Credit") ||
-    (field == field_contributie && amount == annual_contrib) ||
+    (field == field_contributie && int(amount) == int(annual_contrib)) ||
     (field == field_concert && debit_credit == "Credit" &&
        (notifications ~ "Openbaar optreden" ||
         notifications ~ "NhPO" ||
@@ -59,18 +59,18 @@ function analyse_field(match_text, field)
     {
       if (!mailing)
       {
-        contributions[name] += amount
+        contributions[counterparty] += amount
       }
       else
       {
-        if (name in accounts_name)
+        if (counterparty in accounts_name)
         {
-          contributions[name] += amount
+          contributions[counterparty] += amount
         }
         else
         {
           printf(">>> WARNING account: '%s' from '%s' not present in accounts\n",
-            name, date) > "/dev/stderr"
+            counterparty, date) > "/dev/stderr"
         }
       }
     }
@@ -145,8 +145,9 @@ BEGIN {
     # fields that are directly present in the csv input
     date = $1
     name = $2
+    counterparty = $4
     debit_credit = $6
-    amount = $7
+    amount = (float)$7
     notifications = $9
     resulting_balance = $10
 
@@ -161,7 +162,7 @@ BEGIN {
     output_fields[field_omschrijving] = notifications;
 
     # analyse the fields
-    if (!analyse_field("[cC]ontri?b|CONTBR|CONTR|speelj|bijbetaling", field_contributie) &&
+    if (!analyse_field("[cC]ontri?b|CONTBR|CONTR|speelj|bijbetaling|betaling", field_contributie) &&
         !analyse_field("betv", field_betv) &&
         !analyse_field("muziek", field_muziek) &&
         !analyse_field("concert|optreden", field_concert) &&
@@ -217,7 +218,7 @@ END {
       {
         for (key in accounts_name)
         {
-          printf("%s;%s\n", accounts_name[key], key) > ENVIRON["FILE_MAIL"]
+          printf("%s;%s;%s\n", accounts_name[key], contributions[key], key) > ENVIRON["FILE_MAIL"]
         }
       }
       else
